@@ -1,1 +1,3 @@
 awpy>=2.0.0
+jupyterlab
+ipykernel
