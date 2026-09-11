@@ -5,6 +5,7 @@ utility detonations, and round state from CS2 Source 2 (.dem) files,
 exporting normalized columnar Parquet tables to the data lake.
 """
 import logging
+import re
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Tuple
 
@@ -52,6 +53,15 @@ ROUND_WIN_REASONS: Dict[int, str] = {
 DEFAULT_TRADE_WINDOW_TICKS = 192
 
 
+def to_df(data: Any) -> pd.DataFrame:
+    """Safely convert demoparser2 event result (DataFrame or list of dicts) to DataFrame."""
+    if isinstance(data, pd.DataFrame):
+        return data
+    if isinstance(data, list) and len(data) > 0:
+        return pd.DataFrame(data)
+    return pd.DataFrame()
+
+
 def normalize_radar_coords(
     x: Optional[float], y: Optional[float], map_name: str
 ) -> Tuple[Optional[float], Optional[float]]:
@@ -79,14 +89,14 @@ def build_round_timeline(
     parser: DemoParser,
 ) -> Tuple[pd.DataFrame, Callable[[int], int], int]:
     """Identify live rounds, freeze periods, end ticks, and winners."""
-    ms = parser.parse_event("round_announce_match_start")
+    ms = to_df(parser.parse_event("round_announce_match_start"))
     match_start_tick = int(ms.iloc[0]["tick"]) if not ms.empty else 0
 
-    re = parser.parse_event("round_end")
+    re = to_df(parser.parse_event("round_end"))
     if not re.empty and match_start_tick > 0:
         re = re[re["tick"] > match_start_tick].reset_index(drop=True)
 
-    fe = parser.parse_event("round_freeze_end")
+    fe = to_df(parser.parse_event("round_freeze_end"))
     if not fe.empty and match_start_tick > 0:
         fe = fe[fe["tick"] >= match_start_tick].reset_index(drop=True)
 
@@ -142,8 +152,10 @@ def extract_kills(
     trade_window_ticks: int = DEFAULT_TRADE_WINDOW_TICKS,
 ) -> pd.DataFrame:
     """Extract player kills with 3D coordinates, radar normalization, and trade logic."""
-    kills = parser.parse_event(
-        "player_death", player=["X", "Y", "Z", "pitch", "yaw", "last_place_name"]
+    kills = to_df(
+        parser.parse_event(
+            "player_death", player=["X", "Y", "Z", "pitch", "yaw", "last_place_name"]
+        )
     )
     if kills.empty:
         return pd.DataFrame()
@@ -284,8 +296,10 @@ def extract_damage(
     map_name: str,
 ) -> pd.DataFrame:
     """Extract individual damage events with coordinates."""
-    dmg = parser.parse_event(
-        "player_hurt", player=["X", "Y", "Z", "pitch", "yaw"]
+    dmg = to_df(
+        parser.parse_event(
+            "player_hurt", player=["X", "Y", "Z", "pitch", "yaw"]
+        )
     )
     if dmg.empty:
         return pd.DataFrame()
@@ -365,7 +379,7 @@ def extract_utility(
     frames = []
     for evt_name, grenade_label in utility_event_types.items():
         try:
-            df = parser.parse_event(evt_name)
+            df = to_df(parser.parse_event(evt_name))
             if not df.empty:
                 df["grenade_type"] = grenade_label
                 frames.append(df)
@@ -421,7 +435,7 @@ def extract_bomb_events(
     frames = []
 
     try:
-        bp = parser.parse_event("bomb_planted", player=["X", "Y", "Z"])
+        bp = to_df(parser.parse_event("bomb_planted", player=["X", "Y", "Z"]))
         if not bp.empty:
             bp["event_type"] = "planted"
             frames.append(bp)
@@ -429,7 +443,7 @@ def extract_bomb_events(
         pass
 
     try:
-        bd = parser.parse_event("bomb_defused", player=["X", "Y", "Z"])
+        bd = to_df(parser.parse_event("bomb_defused", player=["X", "Y", "Z"]))
         if not bd.empty:
             bd["event_type"] = "defused"
             frames.append(bd)
@@ -437,7 +451,7 @@ def extract_bomb_events(
         pass
 
     try:
-        bx = parser.parse_event("bomb_exploded")
+        bx = to_df(parser.parse_event("bomb_exploded"))
         if not bx.empty:
             bx["event_type"] = "exploded"
             frames.append(bx)
@@ -510,10 +524,14 @@ def parse_demo_to_lake(
     raw_map = header.get("map_name", "unknown_map")
     clean_map = raw_map.replace("de_", "")
 
-    # Output directory partitioning: lake/event_{id}/match_{id}/{clean_map}/
+    # Multi-part map handling (e.g. mirage-p1 vs mirage-p2)
+    part_match = re.search(r"[-_](p\d+)", demo_path.stem, re.I)
+    map_folder = f"{clean_map}_{part_match.group(1).lower()}" if part_match else clean_map
+
+    # Output directory partitioning: lake/event_{id}/match_{id}/{map_folder}/
     ev_str = f"event_{event_id}" if event_id else "event_unknown"
     ma_str = f"match_{match_id}" if match_id else "match_unknown"
-    target_dir = lake_root / ev_str / ma_str / clean_map
+    target_dir = lake_root / ev_str / ma_str / map_folder
     target_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Round timeline

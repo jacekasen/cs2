@@ -92,6 +92,24 @@ def download_demo_archive(demo_id: int, client: Optional[StealthHLTVClient] = No
             timeout=30,
         )
 
+        if resp.status_code in (403, 503):
+            logger.warning(
+                "Demo %d download returned HTTP %d. Refreshing Cloudflare session via CDP...",
+                demo_id,
+                resp.status_code,
+            )
+            client._init_session(force=True)
+            headers = dict(client._session.headers)
+            headers["Referer"] = row["match_url"]
+            headers["User-Agent"] = client.user_agent
+            resp = client._session.get(
+                row["download_url"],
+                headers=headers,
+                stream=True,
+                allow_redirects=True,
+                timeout=30,
+            )
+
         if resp.status_code != 200:
             err_msg = f"Failed to download demo {demo_id}: HTTP {resp.status_code}"
             logger.error(err_msg)
