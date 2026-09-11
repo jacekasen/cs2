@@ -10,30 +10,30 @@ The pipeline is designed with Cloudflare resilience, zero-redundancy disk cachin
 
 ```mermaid
 flowchart TD
-    subgraph Discovery ["1. Discovery & Scraping"]
-        A["HLTV MVP CS2 Events<br/>(65 Tournaments)"] -->|Cautious Probe| B[Events Harvester]
-        B -->|Paginated & Chronological| C[("data/catalog/mvp_events.json")]
-        C -->|Select Event ID| D[Match Crawler]
-        D -->|Parse Results| E[Match Pages]
-        E -->|Resolve GOTV Link| F[Demo Target Queue]
+    subgraph Discovery ["1. Discovery and Scraping"]
+        A["HLTV MVP CS2 Events - 65 Tournaments"] -->|Cautious Probe| B["Events Harvester"]
+        B -->|Paginated and Chronological| C["data/catalog/mvp_events.json"]
+        C -->|Select Event ID| D["Match Crawler"]
+        D -->|Parse Results| E["Match Pages"]
+        E -->|Resolve GOTV Link| F["Demo Target Queue"]
     end
 
     subgraph Catalog ["2. State Management"]
-        F --> G[("SQLite Database<br/>cs2_pro_demos.sqlite")]
+        F --> G["SQLite Database - cs2_pro_demos.sqlite"]
     end
 
-    subgraph Defense ["3. Cloudflare & Bot Mitigation"]
-        H["Google Chrome CDP<br/>(One-time Handshake)"] -->|cf_clearance token| I[Session Cache]
-        I --> J["curl_cffi Client<br/>(Chrome TLS/HTTP2 Impersonation)"]
+    subgraph Defense ["3. Cloudflare and Bot Mitigation"]
+        H["Google Chrome CDP - One-time Handshake"] -->|cf_clearance token| I["Session Cache"]
+        I --> J["curl_cffi Client - Chrome TLS/HTTP2 Impersonation"]
         J -->|5.0s - 9.0s Jitter| D
-        J -->|Circuit Breaker (Instant Stop)| K["Protected IP"]
+        J -->|Circuit Breaker - Instant Stop| K["Protected IP"]
     end
 
-    subgraph Processing ["4. Ingestion & Unpacking"]
-        G -->|Status: DISCOVERED| L[Streaming Downloader]
-        L --> M["data/archives/<br/>*.rar"]
-        M -->|7zz Unpack| N["data/demos/<br/>*.dem"]
-        N -->|Verify Magic: PBDEMS2| O[Downstream CS2 Parsers<br/>demoparser2 / awpy]
+    subgraph Processing ["4. Ingestion and Unpacking"]
+        G -->|Status: DISCOVERED| L["Streaming Downloader"]
+        L --> M["data/archives/*.rar"]
+        M -->|7zz Unpack| N["data/demos/*.dem"]
+        N -->|Verify Magic: PBDEMS2| O["Downstream CS2 Parsers - demoparser2 / awpy"]
     end
 ```
 
