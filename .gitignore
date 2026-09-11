@@ -1,3 +1,14 @@
 .DS_Store
 *.rar
 *.dem
+*.part
+__pycache__/
+*.pyc
+
+# Local session tokens, SQLite database, and raw HTML caches
+data/cache/
+*.sqlite
+*.sqlite3
+*.db
+data/archives/
+data/demos/

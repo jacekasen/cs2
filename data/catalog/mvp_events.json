@@ -1,0 +1,587 @@
+[
+  {
+    "event_id": 6865,
+    "name": "IEM Sydney 2023",
+    "winner": "FaZe",
+    "maps_count": 59,
+    "results_url": "https://www.hltv.org/results?event=6865",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7289,
+    "name": "Thunderpick World Championship 2023",
+    "winner": "FaZe",
+    "maps_count": 66,
+    "results_url": "https://www.hltv.org/results?event=7289",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7365,
+    "name": "CS Asia Championships 2023",
+    "winner": "FaZe",
+    "maps_count": 28,
+    "results_url": "https://www.hltv.org/results?event=7365",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 6975,
+    "name": "BLAST Premier Fall Final 2023",
+    "winner": "Vitality",
+    "maps_count": 32,
+    "results_url": "https://www.hltv.org/results?event=6975",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 6868,
+    "name": "ESL Challenger J\u00f6nk\u00f6ping 2023",
+    "winner": "Monte",
+    "maps_count": 23,
+    "results_url": "https://www.hltv.org/results?event=6868",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7250,
+    "name": "Elisa Masters Espoo 2023",
+    "winner": "FURIA",
+    "maps_count": 28,
+    "results_url": "https://www.hltv.org/results?event=7250",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7499,
+    "name": "BetBoom Dacha 2023",
+    "winner": "Spirit",
+    "maps_count": 31,
+    "results_url": "https://www.hltv.org/results?event=7499",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 6976,
+    "name": "BLAST Premier World Final 2023",
+    "winner": "Vitality",
+    "maps_count": 29,
+    "results_url": "https://www.hltv.org/results?event=6976",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 6869,
+    "name": "ESL Challenger Atlanta 2023",
+    "winner": "Virtus.pro",
+    "maps_count": 22,
+    "results_url": "https://www.hltv.org/results?event=6869",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7435,
+    "name": "IEM Katowice 2024",
+    "winner": "Spirit",
+    "maps_count": 72,
+    "results_url": "https://www.hltv.org/results?event=7435",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7148,
+    "name": "PGL CS2 Major Copenhagen 2024",
+    "winner": "Natus Vincere",
+    "maps_count": 73,
+    "results_url": "https://www.hltv.org/results?event=7148",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7437,
+    "name": "IEM Chengdu 2024",
+    "winner": "FaZe",
+    "maps_count": 57,
+    "results_url": "https://www.hltv.org/results?event=7437",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7440,
+    "name": "ESL Pro League Season 19",
+    "winner": "MOUZ",
+    "maps_count": 193,
+    "results_url": "https://www.hltv.org/results?event=7440",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7755,
+    "name": "BetBoom Dacha Belgrade 2024",
+    "winner": "MOUZ",
+    "maps_count": 32,
+    "results_url": "https://www.hltv.org/results?event=7755",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7438,
+    "name": "IEM Dallas 2024",
+    "winner": "G2",
+    "maps_count": 58,
+    "results_url": "https://www.hltv.org/results?event=7438",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7475,
+    "name": "YaLLa Compass 2024",
+    "winner": "The MongolZ",
+    "maps_count": 43,
+    "results_url": "https://www.hltv.org/results?event=7475",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7485,
+    "name": "BLAST Premier Spring Final 2024",
+    "winner": "Spirit",
+    "maps_count": 34,
+    "results_url": "https://www.hltv.org/results?event=7485",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7732,
+    "name": "Esports World Cup 2024",
+    "winner": "Natus Vincere",
+    "maps_count": 41,
+    "results_url": "https://www.hltv.org/results?event=7732",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7436,
+    "name": "IEM Cologne 2024",
+    "winner": "Vitality",
+    "maps_count": 71,
+    "results_url": "https://www.hltv.org/results?event=7436",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7993,
+    "name": "BetBoom Dacha Belgrade Season 2",
+    "winner": "Spirit",
+    "maps_count": 35,
+    "results_url": "https://www.hltv.org/results?event=7993",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7441,
+    "name": "ESL Pro League Season 20",
+    "winner": "Natus Vincere",
+    "maps_count": 188,
+    "results_url": "https://www.hltv.org/results?event=7441",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7556,
+    "name": "BLAST Premier Fall Final 2024",
+    "winner": "G2",
+    "maps_count": 34,
+    "results_url": "https://www.hltv.org/results?event=7556",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7439,
+    "name": "IEM Rio 2024",
+    "winner": "Natus Vincere",
+    "maps_count": 61,
+    "results_url": "https://www.hltv.org/results?event=7439",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7557,
+    "name": "BLAST Premier World Final 2024",
+    "winner": "G2",
+    "maps_count": 32,
+    "results_url": "https://www.hltv.org/results?event=7557",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7524,
+    "name": "Perfect World Shanghai Major 2024",
+    "winner": "Spirit",
+    "maps_count": 72,
+    "results_url": "https://www.hltv.org/results?event=7524",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7909,
+    "name": "BLAST Bounty 2025 Season 1 Finals",
+    "winner": "Spirit",
+    "maps_count": 18,
+    "results_url": "https://www.hltv.org/results?event=7909",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8034,
+    "name": "IEM Katowice 2025",
+    "winner": "Vitality",
+    "maps_count": 69,
+    "results_url": "https://www.hltv.org/results?event=8034",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8043,
+    "name": "PGL Cluj-Napoca 2025",
+    "winner": "MOUZ",
+    "maps_count": 100,
+    "results_url": "https://www.hltv.org/results?event=8043",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8292,
+    "name": "ESL Pro League Season 21",
+    "winner": "Vitality",
+    "maps_count": 98,
+    "results_url": "https://www.hltv.org/results?event=8292",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7904,
+    "name": "BLAST Open Lisbon 2025",
+    "winner": "Vitality",
+    "maps_count": 69,
+    "results_url": "https://www.hltv.org/results?event=7904",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8044,
+    "name": "PGL Bucharest 2025",
+    "winner": "Falcons",
+    "maps_count": 97,
+    "results_url": "https://www.hltv.org/results?event=8044",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8036,
+    "name": "IEM Melbourne 2025",
+    "winner": "Vitality",
+    "maps_count": 71,
+    "results_url": "https://www.hltv.org/results?event=8036",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7905,
+    "name": "BLAST Rivals 2025 Season 1",
+    "winner": "Vitality",
+    "maps_count": 32,
+    "results_url": "https://www.hltv.org/results?event=7905",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8045,
+    "name": "PGL Astana 2025",
+    "winner": "Spirit",
+    "maps_count": 102,
+    "results_url": "https://www.hltv.org/results?event=8045",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8037,
+    "name": "IEM Dallas 2025",
+    "winner": "Vitality",
+    "maps_count": 71,
+    "results_url": "https://www.hltv.org/results?event=8037",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7902,
+    "name": "BLAST.tv Austin Major 2025",
+    "winner": "Vitality",
+    "maps_count": 71,
+    "results_url": "https://www.hltv.org/results?event=7902",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8063,
+    "name": "FISSURE Playground 1",
+    "winner": "TYLOO",
+    "maps_count": 67,
+    "results_url": "https://www.hltv.org/results?event=8063",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8038,
+    "name": "IEM Cologne 2025",
+    "winner": "Spirit",
+    "maps_count": 66,
+    "results_url": "https://www.hltv.org/results?event=8038",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7910,
+    "name": "BLAST Bounty 2025 Season 2 Finals",
+    "winner": "Spirit",
+    "maps_count": 15,
+    "results_url": "https://www.hltv.org/results?event=7910",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8039,
+    "name": "Esports World Cup 2025",
+    "winner": "The MongolZ",
+    "maps_count": 42,
+    "results_url": "https://www.hltv.org/results?event=8039",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7912,
+    "name": "BLAST Open London 2025 Finals",
+    "winner": "G2",
+    "maps_count": 14,
+    "results_url": "https://www.hltv.org/results?event=7912",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8064,
+    "name": "FISSURE Playground 2",
+    "winner": "FURIA",
+    "maps_count": 99,
+    "results_url": "https://www.hltv.org/results?event=8064",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8040,
+    "name": "ESL Pro League Season 22",
+    "winner": "Vitality",
+    "maps_count": 93,
+    "results_url": "https://www.hltv.org/results?event=8040",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8067,
+    "name": "Thunderpick World Championship 2025",
+    "winner": "FURIA",
+    "maps_count": 38,
+    "results_url": "https://www.hltv.org/results?event=8067",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8027,
+    "name": "CS Asia Championships 2025",
+    "winner": "Legacy",
+    "maps_count": 68,
+    "results_url": "https://www.hltv.org/results?event=8027",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8046,
+    "name": "PGL Masters Bucharest 2025",
+    "winner": "Aurora",
+    "maps_count": 104,
+    "results_url": "https://www.hltv.org/results?event=8046",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8041,
+    "name": "IEM Chengdu 2025",
+    "winner": "FURIA",
+    "maps_count": 76,
+    "results_url": "https://www.hltv.org/results?event=8041",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 7908,
+    "name": "BLAST Rivals 2025 Season 2",
+    "winner": "FURIA",
+    "maps_count": 34,
+    "results_url": "https://www.hltv.org/results?event=7908",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8042,
+    "name": "StarLadder Budapest Major 2025",
+    "winner": "Vitality",
+    "maps_count": 68,
+    "results_url": "https://www.hltv.org/results?event=8042",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8246,
+    "name": "BLAST Bounty 2026 Season 1 Finals",
+    "winner": "PARIVISION",
+    "maps_count": 18,
+    "results_url": "https://www.hltv.org/results?event=8246",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8240,
+    "name": "IEM Krak\u00f3w 2026",
+    "winner": "Vitality",
+    "maps_count": 74,
+    "results_url": "https://www.hltv.org/results?event=8240",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8047,
+    "name": "PGL Cluj-Napoca 2026",
+    "winner": "Vitality",
+    "maps_count": 102,
+    "results_url": "https://www.hltv.org/results?event=8047",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8413,
+    "name": "ESL Pro League Season 23 Finals",
+    "winner": "Natus Vincere",
+    "maps_count": 23,
+    "results_url": "https://www.hltv.org/results?event=8413",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8248,
+    "name": "BLAST Open Rotterdam 2026",
+    "winner": "Vitality",
+    "maps_count": 70,
+    "results_url": "https://www.hltv.org/results?event=8248",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8048,
+    "name": "PGL Bucharest 2026",
+    "winner": "FUT",
+    "maps_count": 95,
+    "results_url": "https://www.hltv.org/results?event=8048",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8242,
+    "name": "IEM Rio 2026",
+    "winner": "Vitality",
+    "maps_count": 70,
+    "results_url": "https://www.hltv.org/results?event=8242",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8250,
+    "name": "BLAST Rivals 2026 Season 1",
+    "winner": "Vitality",
+    "maps_count": 32,
+    "results_url": "https://www.hltv.org/results?event=8250",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8243,
+    "name": "IEM Atlanta 2026",
+    "winner": "Natus Vincere",
+    "maps_count": 73,
+    "results_url": "https://www.hltv.org/results?event=8243",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8049,
+    "name": "PGL Astana 2026",
+    "winner": "Spirit",
+    "maps_count": 96,
+    "results_url": "https://www.hltv.org/results?event=8049",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8263,
+    "name": "CS Asia Championships 2026",
+    "winner": "Legacy",
+    "maps_count": 64,
+    "results_url": "https://www.hltv.org/results?event=8263",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8301,
+    "name": "IEM Cologne Major 2026",
+    "winner": "Falcons",
+    "maps_count": 103,
+    "results_url": "https://www.hltv.org/results?event=8301",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8914,
+    "name": "XSE Pro League Guangzhou 2026",
+    "winner": "9z",
+    "maps_count": 72,
+    "results_url": "https://www.hltv.org/results?event=8914",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8247,
+    "name": "BLAST Bounty 2026 Season 2 Finals",
+    "winner": "MOUZ",
+    "maps_count": 21,
+    "results_url": "https://www.hltv.org/results?event=8247",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8261,
+    "name": "Esports World Cup 2026",
+    "winner": "Spirit",
+    "maps_count": 115,
+    "results_url": "https://www.hltv.org/results?event=8261",
+    "start_date": null,
+    "end_date": null
+  },
+  {
+    "event_id": 8249,
+    "name": "BLAST Open Porto 2026",
+    "winner": "Spirit",
+    "maps_count": 68,
+    "results_url": "https://www.hltv.org/results?event=8249",
+    "start_date": null,
+    "end_date": null
+  }
+]
