@@ -1,8 +1,8 @@
 # CS2 Professional Match Demo Pipeline
 
-An automated, ultra-defensive data pipeline for discovering, cataloging, downloading, and extracting Counter-Strike 2 (CS2) professional match demo files (`.dem`) from HLTV.
+An automated, ultra-defensive data pipeline for discovering, cataloging, downloading, extracting, and parsing Counter-Strike 2 (CS2) professional match demo files (`.dem`) and official HLTV statistics.
 
-The pipeline is designed with Cloudflare resilience, zero-redundancy disk caching, circuit breaker protection, and polite human-like jitter to safely crawl professional matches starting from the release of CS2 (October 2023) to the present.
+The pipeline is designed with Cloudflare resilience, zero-redundancy disk caching, circuit breaker protection, polite human-like jitter, high-performance feature extraction, and columnar Parquet lake partitioning. Peak disk usage is kept minimal through rolling worker processing.
 
 ---
 
@@ -10,30 +10,33 @@ The pipeline is designed with Cloudflare resilience, zero-redundancy disk cachin
 
 ```mermaid
 flowchart TD
-    subgraph Discovery ["1. Discovery and Scraping"]
+    subgraph Discovery ["1. Discovery & Scraping"]
         A["HLTV MVP CS2 Events - 65 Tournaments"] -->|Cautious Probe| B["Events Harvester"]
-        B -->|Paginated and Chronological| C["data/catalog/mvp_events.json"]
+        B -->|Paginated & Chronological| C["data/catalog/mvp_events.json"]
         C -->|Select Event ID| D["Match Crawler"]
         D -->|Parse Results| E["Match Pages"]
         E -->|Resolve GOTV Link| F["Demo Target Queue"]
+        E -->|Extract Match Boxscores| S["Official HLTV Stats (Per Map)"]
     end
 
     subgraph Catalog ["2. State Management"]
         F --> G["SQLite Database - cs2_pro_demos.sqlite"]
+        S --> G
     end
 
-    subgraph Defense ["3. Cloudflare and Bot Mitigation"]
+    subgraph Defense ["3. Cloudflare & Bot Mitigation"]
         H["Google Chrome CDP - One-time Handshake"] -->|cf_clearance token| I["Session Cache"]
         I --> J["curl_cffi Client - Chrome TLS/HTTP2 Impersonation"]
         J -->|5.0s - 9.0s Jitter| D
         J -->|Circuit Breaker - Instant Stop| K["Protected IP"]
     end
 
-    subgraph Processing ["4. Ingestion and Unpacking"]
+    subgraph Processing ["4. Ingestion & Analytics Engine"]
         G -->|Status: DISCOVERED| L["Streaming Downloader"]
         L --> M["data/archives/*.rar"]
         M -->|unar Unpack| N["data/demos/*.dem"]
-        N -->|Verify Magic: PBDEMS2| O["Downstream CS2 Parsers - demoparser2 / awpy"]
+        N -->|Verify Magic: PBDEMS2| O["Feature Extraction Engine - src/parser.py"]
+        O -->|Snappy Columnar Lake| P["data/lake/event_{id}/match_{id}/{map}/*.parquet"]
     end
 ```
 
@@ -53,20 +56,23 @@ flowchart TD
 |   |   `-- session_cookies.json  # Stored cf_clearance and browser fingerprint
 |   |-- catalog/
 |   |   |-- mvp_events.json       # All 65 CS2 MVP events (chronological order)
-|   |   `-- cs2_pro_demos.sqlite  # SQLite database tracking events, matches, and demos
-|   `-- demos/                    # Extracted CS2 .dem files organized by event/match
+|   |   `-- cs2_pro_demos.sqlite  # SQLite database tracking events, matches, stats, and demos
+|   |-- demos/                    # Extracted CS2 .dem files organized by event/match
+|   `-- lake/                     # Snappy-compressed columnar Parquet tables (partitioned)
 `-- src/
     |-- config.py                 # Paths, rate limits, jitter settings, browser headers
     |-- db.py                     # SQLite connection, schema, and upsert helpers
     |-- downloader.py             # Streaming downloader, unar extractor, and CS2 header checker
     |-- models.py                 # Data models: MVPEvent, Match
+    |-- parser.py                 # Feature extraction engine (kills, damage, utility, bomb, rounds)
     |-- utils/
     |   |-- cache.py              # DiskCache (ensures 0 redundant network calls)
     |   |-- client.py             # StealthHLTVClient with TLS impersonation & circuit breaker
     |   `-- session_manager.py    # Automated Chrome CDP Cloudflare clearance solver
     `-- scraper/
         |-- harvest_events.py     # Discovers and paginates all CS2 MVP events
-        `-- harvest_matches.py    # Crawls event matches and resolves GOTV demo links
+        |-- harvest_matches.py    # Crawls event matches, resolves GOTV links, extracts stats
+        `-- harvest_stats.py      # Parses official HLTV player boxscores and map results
 ```
 
 ---
@@ -107,7 +113,8 @@ Required packages:
 - `curl_cffi` (TLS/HTTP2 impersonation)
 - `beautifulsoup4` (HTML parsing)
 - `websockets` (CDP communication)
-- `demoparser2` and `awpy` (Downstream CS2 demo analysis)
+- `demoparser2` and `awpy` (CS2 Source 2 demo parsing)
+- `polars` and `pyarrow` (High-performance Parquet generation)
 
 ### 2. Harvest MVP CS2 Events
 
@@ -119,12 +126,12 @@ python -m src.scraper.harvest_events
 
 Outputs:
 
-- [`data/catalog/mvp_events.json`](data/catalog/mvp_events.json) (65 events, 3,289+ maps)
-- Populates the `events` table in SQLite database.
+- [`data/catalog/mvp_events.json`](data/catalog/mvp_events.json) (65 events, 4,092+ maps)
+- Populates the `events` table in the SQLite database.
 
-### 3. Harvest Matches and Demo Targets for an Event
+### 3. Harvest Matches, Demo Targets, and HLTV Stats
 
-To crawl all completed matches and resolve demo download links for a tournament:
+To crawl all completed matches, resolve demo download links, and catalog official player scoreboard statistics:
 
 ```bash
 # Example: Harvest all 29 matches for IEM Sydney 2023 (Event 6865)
@@ -136,8 +143,9 @@ python -m src.scraper.harvest_matches --event 6865 --max-matches 5
 
 Outputs:
 
-- Populates `matches` and `demos` tables in [`data/catalog/cs2_pro_demos.sqlite`](data/catalog/cs2_pro_demos.sqlite).
+- Populates `matches`, `demos`, `hltv_player_stats`, and `hltv_map_stats` tables in [`data/catalog/cs2_pro_demos.sqlite`](data/catalog/cs2_pro_demos.sqlite).
 - HTML cached in `data/cache/matches/match_<id>.html`.
+- Filters out aggregate "All maps" rows so that only granular map-by-map statistics are saved.
 
 ### 4. Download and Extract Demo Files
 
@@ -158,6 +166,30 @@ Outputs:
 - Validates the CS2 Source 2 magic header (`PBDEMS2\0`).
 - Updates `status` to `EXTRACTED` in the SQLite database.
 
+### 5. Parse Demos into Parquet Lake
+
+To extract rich combat telemetry, trade kills, opening duels, utility events, and round states into columnar Parquet tables:
+
+```python
+from pathlib import Path
+from src.parser import parse_demo_to_lake
+
+demo_file = Path("data/demos/2023/IEM_Sydney_2023/match_2367128_Monte_vs_Complexity/monte-vs-complexity-anubis.dem")
+results = parse_demo_to_lake(demo_file, match_id=2367128, event_id=6865)
+print(results)
+```
+
+Outputs 5 Snappy-compressed tables under `data/lake/event_{event_id}/match_{match_id}/{map_name}/`:
+
+- `rounds.parquet`: Round durations, winners (`T` or `CT`), win reasons (`target_bombed`, `bomb_defused`, `cts_win`, etc.).
+- `kills.parquet`: 3D coordinates `(X, Y, Z)`, 2D normalized radar coordinates `[0.0, 1.0]`, pitch/yaw angles, weapon, hitgroup, headshot, wallbang, smoke status, opening duel flag (`is_first_kill`), and trade attribution (`is_trade_kill`, `traded_player_name`, `trade_ticks_delta`).
+- `damage.parquet`: Per-impact damage, remaining HP/armor, attacker and victim coordinates.
+- `utility.parquet`: Detonations for smokes, flashes, HE grenades, and molotovs with spatial coordinates.
+- `bomb.parquet`: Bomb plant locations, defusals, and explosions.
+
+> [!TIP]
+> Converting a 198 MB raw CS2 `.dem` file to Parquet tables results in ~106 KB total data (~99.95% storage reduction), making storing thousands of professional matches on modest disk space entirely feasible.
+
 ---
 
 ## Database Schema (`cs2_pro_demos.sqlite`)
@@ -176,7 +208,7 @@ Outputs:
 
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `match_id` | `INTEGER PRIMARY KEY` | HLTV Match ID (e.g. `2367264`) |
+| `match_id` | `INTEGER PRIMARY KEY` | HLTV Match ID (e.g. `2367128`) |
 | `event_id` | `INTEGER` | Foreign key to `events` |
 | `team1` | `TEXT` | Team 1 name |
 | `team2` | `TEXT` | Team 2 name |
@@ -190,13 +222,43 @@ Outputs:
 
 | Column | Type | Description |
 | :--- | :--- | :--- |
-| `demo_id` | `INTEGER PRIMARY KEY` | HLTV GOTV demo archive ID (e.g. `82852`) |
+| `demo_id` | `INTEGER PRIMARY KEY` | HLTV GOTV demo archive ID (e.g. `82728`) |
 | `match_id` | `INTEGER UNIQUE` | Foreign key to `matches` |
 | `download_url` | `TEXT` | Direct download URL (`https://www.hltv.org/download/demo/{id}`) |
-| `maps_json` | `TEXT` | JSON list of maps played (e.g. `["overpass", "nuke", "ancient"]`) |
-| `status` | `TEXT` | Queue status (`DISCOVERED`, `DOWNLOADING`, `DOWNLOADED`, `EXTRACTED`, `FAILED`) |
+| `maps_json` | `TEXT` | JSON list of maps played (e.g. `["anubis"]`) |
+| `status` | `TEXT` | Queue status (`DISCOVERED`, `DOWNLOADING`, `DOWNLOADED`, `EXTRACTED`, `PARSED`, `FAILED`) |
 | `archive_path` | `TEXT` | Local path to `.rar` archive |
 | `extracted_paths_json` | `TEXT` | Local paths to extracted `.dem` files |
+
+### `hltv_player_stats`
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `match_id` | `INTEGER` | Foreign key to `matches` |
+| `event_id` | `INTEGER` | HLTV Event ID |
+| `map_name` | `TEXT` | Map name (e.g. `Anubis`, `Mirage`) |
+| `team` | `TEXT` | Team name |
+| `player_id` | `INTEGER` | HLTV Player ID |
+| `player_nick` | `TEXT` | Player nickname |
+| `kills` | `INTEGER` | Kills |
+| `deaths` | `INTEGER` | Deaths |
+| `plus_minus` | `INTEGER` | Kill/death differential |
+| `adr` | `REAL` | Average Damage per Round |
+| `kast_pct` | `REAL` | Percentage of rounds with Kill, Assist, Survived, or Traded |
+| `rating` | `REAL` | HLTV Rating 2.0 / 3.0 |
+
+### `hltv_map_stats`
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `match_id` | `INTEGER` | Foreign key to `matches` |
+| `event_id` | `INTEGER` | HLTV Event ID |
+| `map_name` | `TEXT` | Map name |
+| `team1` | `TEXT` | Team 1 name |
+| `team2` | `TEXT` | Team 2 name |
+| `score1` | `INTEGER` | Team 1 score |
+| `score2` | `INTEGER` | Team 2 score |
+| `half_scores` | `TEXT` | Half-time score splits |
 
 ---
 
