@@ -12,6 +12,7 @@ CATALOG_DIR = DATA_DIR / "catalog"
 DATABASE_PATH = CATALOG_DIR / "cs2_pro_demos.sqlite"
 ARCHIVES_DIR = DATA_DIR / "archives"
 DEMOS_DIR = DATA_DIR / "demos"
+LAKE_DIR = DATA_DIR / "lake"
 
 # Extraction tool paths (prefer unar for full RAR5 support on macOS)
 UNAR_PATH = shutil.which("unar") or "/opt/homebrew/bin/unar"
@@ -26,6 +27,7 @@ for path in (
     CATALOG_DIR,
     ARCHIVES_DIR,
     DEMOS_DIR,
+    LAKE_DIR,
 ):
     path.mkdir(parents=True, exist_ok=True)
 

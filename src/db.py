@@ -1,4 +1,4 @@
-"""SQLite database catalog for CS2 professional match demos."""
+"""SQLite database catalog for CS2 professional match demos and HLTV stats."""
 import json
 import sqlite3
 from pathlib import Path
@@ -47,7 +47,7 @@ def init_db(db_path: Path = DATABASE_PATH) -> None:
             match_id INTEGER UNIQUE NOT NULL,
             download_url TEXT NOT NULL,
             maps_json TEXT,
-            status TEXT DEFAULT 'DISCOVERED',  -- DISCOVERED, DOWNLOADING, DOWNLOADED, EXTRACTED, FAILED
+            status TEXT DEFAULT 'DISCOVERED',  -- DISCOVERED, DOWNLOADING, DOWNLOADED, EXTRACTED, PARSED, FAILED
             archive_path TEXT,
             extracted_paths_json TEXT,
             error_message TEXT,
@@ -56,8 +56,45 @@ def init_db(db_path: Path = DATABASE_PATH) -> None:
             FOREIGN KEY (match_id) REFERENCES matches (match_id)
         );
 
+        CREATE TABLE IF NOT EXISTS hltv_player_stats (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            match_id INTEGER NOT NULL,
+            event_id INTEGER NOT NULL,
+            map_name TEXT NOT NULL,
+            team TEXT NOT NULL,
+            player_id INTEGER,
+            player_nick TEXT NOT NULL,
+            kills INTEGER NOT NULL,
+            deaths INTEGER NOT NULL,
+            plus_minus INTEGER,
+            adr REAL,
+            kast_pct REAL,
+            rating REAL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (match_id) REFERENCES matches (match_id),
+            UNIQUE(match_id, map_name, player_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS hltv_map_stats (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            match_id INTEGER NOT NULL,
+            event_id INTEGER NOT NULL,
+            map_name TEXT NOT NULL,
+            team1 TEXT NOT NULL,
+            team2 TEXT NOT NULL,
+            score1 INTEGER NOT NULL,
+            score2 INTEGER NOT NULL,
+            half_scores TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (match_id) REFERENCES matches (match_id),
+            UNIQUE(match_id, map_name)
+        );
+
         CREATE INDEX IF NOT EXISTS idx_matches_event ON matches(event_id);
         CREATE INDEX IF NOT EXISTS idx_demos_status ON demos(status);
+        CREATE INDEX IF NOT EXISTS idx_hltv_player_stats_match ON hltv_player_stats(match_id);
+        CREATE INDEX IF NOT EXISTS idx_hltv_player_stats_player ON hltv_player_stats(player_id);
+        CREATE INDEX IF NOT EXISTS idx_hltv_map_stats_match ON hltv_map_stats(match_id);
         """)
 
 
@@ -108,4 +145,49 @@ def upsert_demo(conn: sqlite3.Connection, demo: Dict[str, Any]) -> None:
             maps_json=excluded.maps_json;
         """,
         (demo["demo_id"], demo["match_id"], demo["download_url"], maps_json),
+    )
+
+
+def upsert_hltv_player_stat(conn: sqlite3.Connection, stat: Dict[str, Any]) -> None:
+    """Insert or update an HLTV player scoreboard record."""
+    conn.execute(
+        """
+        INSERT INTO hltv_player_stats (
+            match_id, event_id, map_name, team, player_id, player_nick,
+            kills, deaths, plus_minus, adr, kast_pct, rating
+        ) VALUES (
+            :match_id, :event_id, :map_name, :team, :player_id, :player_nick,
+            :kills, :deaths, :plus_minus, :adr, :kast_pct, :rating
+        )
+        ON CONFLICT(match_id, map_name, player_id) DO UPDATE SET
+            team=excluded.team,
+            player_nick=excluded.player_nick,
+            kills=excluded.kills,
+            deaths=excluded.deaths,
+            plus_minus=excluded.plus_minus,
+            adr=excluded.adr,
+            kast_pct=excluded.kast_pct,
+            rating=excluded.rating;
+        """,
+        stat,
+    )
+
+
+def upsert_hltv_map_stat(conn: sqlite3.Connection, map_stat: Dict[str, Any]) -> None:
+    """Insert or update an HLTV map result record."""
+    conn.execute(
+        """
+        INSERT INTO hltv_map_stats (
+            match_id, event_id, map_name, team1, team2, score1, score2, half_scores
+        ) VALUES (
+            :match_id, :event_id, :map_name, :team1, :team2, :score1, :score2, :half_scores
+        )
+        ON CONFLICT(match_id, map_name) DO UPDATE SET
+            team1=excluded.team1,
+            team2=excluded.team2,
+            score1=excluded.score1,
+            score2=excluded.score2,
+            half_scores=excluded.half_scores;
+        """,
+        map_stat,
     )

@@ -10,5 +10,8 @@ data/cache/
 *.sqlite
 *.sqlite3
 *.db
+*.csv
 data/archives/
 data/demos/
+data/lake/
+*.parquet
