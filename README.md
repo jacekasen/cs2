@@ -246,6 +246,7 @@ Outputs 5 Snappy-compressed tables under `data/lake/event_{event_id}/match_{matc
 | `adr` | `REAL` | Average Damage per Round |
 | `kast_pct` | `REAL` | Percentage of rounds with Kill, Assist, Survived, or Traded |
 | `rating` | `REAL` | HLTV Rating 2.0 / 3.0 |
+| `round_swing` | `REAL` | HLTV Round Swing % (percentage of round win probability contributed) |
 
 ### `hltv_map_stats`
 

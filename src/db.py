@@ -70,6 +70,7 @@ def init_db(db_path: Path = DATABASE_PATH) -> None:
             adr REAL,
             kast_pct REAL,
             rating REAL,
+            round_swing REAL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (match_id) REFERENCES matches (match_id),
             UNIQUE(match_id, map_name, player_id)
@@ -96,6 +97,14 @@ def init_db(db_path: Path = DATABASE_PATH) -> None:
         CREATE INDEX IF NOT EXISTS idx_hltv_player_stats_player ON hltv_player_stats(player_id);
         CREATE INDEX IF NOT EXISTS idx_hltv_map_stats_match ON hltv_map_stats(match_id);
         """)
+
+        # Migration: ensure round_swing column exists
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(hltv_player_stats);")
+        existing_cols = {row["name"] for row in cursor.fetchall()}
+        if "round_swing" not in existing_cols:
+            conn.execute("ALTER TABLE hltv_player_stats ADD COLUMN round_swing REAL;")
+
 
 
 def upsert_event(conn: sqlite3.Connection, event: Dict[str, Any]) -> None:
@@ -150,14 +159,15 @@ def upsert_demo(conn: sqlite3.Connection, demo: Dict[str, Any]) -> None:
 
 def upsert_hltv_player_stat(conn: sqlite3.Connection, stat: Dict[str, Any]) -> None:
     """Insert or update an HLTV player scoreboard record."""
+    stat.setdefault("round_swing", None)
     conn.execute(
         """
         INSERT INTO hltv_player_stats (
             match_id, event_id, map_name, team, player_id, player_nick,
-            kills, deaths, plus_minus, adr, kast_pct, rating
+            kills, deaths, plus_minus, adr, kast_pct, rating, round_swing
         ) VALUES (
             :match_id, :event_id, :map_name, :team, :player_id, :player_nick,
-            :kills, :deaths, :plus_minus, :adr, :kast_pct, :rating
+            :kills, :deaths, :plus_minus, :adr, :kast_pct, :rating, :round_swing
         )
         ON CONFLICT(match_id, map_name, player_id) DO UPDATE SET
             team=excluded.team,
@@ -167,7 +177,8 @@ def upsert_hltv_player_stat(conn: sqlite3.Connection, stat: Dict[str, Any]) -> N
             plus_minus=excluded.plus_minus,
             adr=excluded.adr,
             kast_pct=excluded.kast_pct,
-            rating=excluded.rating;
+            rating=excluded.rating,
+            round_swing=excluded.round_swing;
         """,
         stat,
     )

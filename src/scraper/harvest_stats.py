@@ -111,6 +111,16 @@ def parse_hltv_match_stats(html_content: str, match_id: int, event_id: int) -> D
                 rating_text = tds[-1].text.strip()
                 rating = float(rating_text) if rating_text.replace(".", "", 1).isdigit() else None
 
+                # Round Swing (Rating 3.0 / HLTV round swing percentage, e.g. "+1.62%", "-2.26%")
+                swing_td = r.find("td", class_=lambda c: c and "roundSwing" in c)
+                round_swing = None
+                if swing_td:
+                    s_clean = swing_td.text.strip().replace("%", "")
+                    try:
+                        round_swing = float(s_clean)
+                    except ValueError:
+                        round_swing = None
+
                 player_stats.append({
                     "match_id": match_id,
                     "event_id": event_id,
@@ -124,6 +134,7 @@ def parse_hltv_match_stats(html_content: str, match_id: int, event_id: int) -> D
                     "adr": adr,
                     "kast_pct": kast,
                     "rating": rating,
+                    "round_swing": round_swing,
                 })
 
     return {
