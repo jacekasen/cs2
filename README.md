@@ -187,8 +187,37 @@ Outputs 5 Snappy-compressed tables under `data/lake/event_{event_id}/match_{matc
 - `utility.parquet`: Detonations for smokes, flashes, HE grenades, and molotovs with spatial coordinates.
 - `bomb.parquet`: Bomb plant locations, defusals, and explosions.
 
-> [!TIP]
-> Converting a 198 MB raw CS2 `.dem` file to Parquet tables results in ~106 KB total data (~99.95% storage reduction), making storing thousands of professional matches on modest disk space entirely feasible.
+### 6. Autonomous Rolling Worker Pipeline
+
+The end-to-end rolling worker orchestrates automated downloads, unpacking, parsing, and garbage collection to process thousands of matches without exceeding host disk limits:
+
+```bash
+# Check queue status and host disk free space
+python -m src.pipeline --status
+
+# Preview next targets for an event without executing
+python -m src.pipeline --event 6865 --dry-run --limit 5
+
+# Process next 5 pending demos for IEM Sydney 2023
+python -m src.pipeline --event 6865 --limit 5
+
+# Process a specific demo ID
+python -m src.pipeline --demo 82721
+
+# Optional flags:
+#   --keep-demos     Preserve extracted .dem files on disk
+#   --keep-archives  Preserve downloaded .rar archives on disk
+#   --force          Reprocess matches even if marked PARSED
+```
+
+**Worker Lifecycle per Match:**
+1. Verifies host free disk space exceeds the 2.0 GB safety threshold.
+2. Streams `.rar` archive directly from HLTV Cloudflare R2 storage.
+3. Unpacks CS2 `.dem` files via `unar` and validates Source 2 magic header (`PBDEMS2\0`).
+4. Extracts 5 Snappy Parquet tables into `data/lake/event_{id}/match_{id}/{map}/`.
+5. Auto-purges temporary `.rar` and `.dem` files, keeping peak disk usage under 1.5 GB.
+6. Updates SQLite `demos.status` to `PARSED`.
+7. Applies polite pacing delay (5.0s - 9.0s jitter) before downloading the next match.
 
 ---
 
