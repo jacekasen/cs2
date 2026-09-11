@@ -32,7 +32,7 @@ flowchart TD
     subgraph Processing ["4. Ingestion and Unpacking"]
         G -->|Status: DISCOVERED| L["Streaming Downloader"]
         L --> M["data/archives/*.rar"]
-        M -->|7zz Unpack| N["data/demos/*.dem"]
+        M -->|unar Unpack| N["data/demos/*.dem"]
         N -->|Verify Magic: PBDEMS2| O["Downstream CS2 Parsers - demoparser2 / awpy"]
     end
 ```
@@ -46,17 +46,20 @@ flowchart TD
 |-- README.md
 |-- requirements.txt
 |-- data/
+|   |-- archives/                 # Downloaded .rar archives (temporary or archived)
 |   |-- cache/
 |   |   |-- events/               # Raw HTML cache for event results pages
 |   |   |-- matches/              # Raw HTML cache for individual match pages
 |   |   `-- session_cookies.json  # Stored cf_clearance and browser fingerprint
-|   `-- catalog/
-|       |-- mvp_events.json       # All 65 CS2 MVP events (chronological order)
-|       `-- cs2_pro_demos.sqlite  # SQLite database tracking events, matches, and demos
+|   |-- catalog/
+|   |   |-- mvp_events.json       # All 65 CS2 MVP events (chronological order)
+|   |   `-- cs2_pro_demos.sqlite  # SQLite database tracking events, matches, and demos
+|   `-- demos/                    # Extracted CS2 .dem files organized by event/match
 `-- src/
     |-- config.py                 # Paths, rate limits, jitter settings, browser headers
-    |-- models.py                 # Data models: MVPEvent, Match
     |-- db.py                     # SQLite connection, schema, and upsert helpers
+    |-- downloader.py             # Streaming downloader, unar extractor, and CS2 header checker
+    |-- models.py                 # Data models: MVPEvent, Match
     |-- utils/
     |   |-- cache.py              # DiskCache (ensures 0 redundant network calls)
     |   |-- client.py             # StealthHLTVClient with TLS impersonation & circuit breaker
@@ -135,6 +138,25 @@ Outputs:
 
 - Populates `matches` and `demos` tables in [`data/catalog/cs2_pro_demos.sqlite`](data/catalog/cs2_pro_demos.sqlite).
 - HTML cached in `data/cache/matches/match_<id>.html`.
+
+### 4. Download and Extract Demo Files
+
+To stream-download and unpack demo files for any cataloged demo ID:
+
+```bash
+# Example: Download and extract Demo 82728 (Monte vs Complexity)
+python -m src.downloader --demo 82728
+
+# Optionally delete the raw .rar archive after extraction to save disk space:
+python -m src.downloader --demo 82728 --delete-archive
+```
+
+Outputs:
+
+- Streams the `.rar` archive into `data/archives/` using 2MB chunks.
+- Decompresses via `unar` into `data/demos/<year>/<event>/match_<id>_<teams>/`.
+- Validates the CS2 Source 2 magic header (`PBDEMS2\0`).
+- Updates `status` to `EXTRACTED` in the SQLite database.
 
 ---
 

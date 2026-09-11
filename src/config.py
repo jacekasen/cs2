@@ -1,4 +1,5 @@
 """Configuration settings for CS2 demo pipeline."""
+import shutil
 from pathlib import Path
 
 # Base Paths
@@ -9,9 +10,23 @@ EVENTS_CACHE_DIR = CACHE_DIR / "events"
 MATCHES_CACHE_DIR = CACHE_DIR / "matches"
 CATALOG_DIR = DATA_DIR / "catalog"
 DATABASE_PATH = CATALOG_DIR / "cs2_pro_demos.sqlite"
+ARCHIVES_DIR = DATA_DIR / "archives"
+DEMOS_DIR = DATA_DIR / "demos"
+
+# Extraction tool paths (prefer unar for full RAR5 support on macOS)
+UNAR_PATH = shutil.which("unar") or "/opt/homebrew/bin/unar"
+SEVEN_ZIP_PATH = shutil.which("7zz") or "/opt/homebrew/bin/7zz"
 
 # Ensure directories exist
-for path in (DATA_DIR, CACHE_DIR, EVENTS_CACHE_DIR, MATCHES_CACHE_DIR, CATALOG_DIR):
+for path in (
+    DATA_DIR,
+    CACHE_DIR,
+    EVENTS_CACHE_DIR,
+    MATCHES_CACHE_DIR,
+    CATALOG_DIR,
+    ARCHIVES_DIR,
+    DEMOS_DIR,
+):
     path.mkdir(parents=True, exist_ok=True)
 
 # HLTV URLs
