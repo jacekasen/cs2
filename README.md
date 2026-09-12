@@ -6,6 +6,21 @@ The pipeline is designed with Cloudflare resilience, zero-redundancy disk cachin
 
 ---
 
+## Dataset Overview & Milestones
+
+- **Tournaments Ingested**: 65 / 65 concluded CS2 MVP tournaments (100% of all concluded MVP events from IEM Sydney 2023 through mid-2026).
+- **Matches Ingested**: 1,787 matches parsed (out of 1,796 cataloged; 99.5% completion rate).
+- **Map Partitions**: 4,321 map partitions under `data/lake/event_{id}/match_{id}/{map_name}/`.
+- **Combat Kills**: 598,022 combat kills with 3D coordinates, 2D radar coordinates, trade latency attribution, and opening duel markers.
+- **Damage Events**: 2,410,218 damage events.
+- **Utility Detonations**: 1,915,181 grenade detonations (smokes, flashes, molotovs, HEs).
+- **Rounds Tracked**: 89,836 rounds with freeze end/end tick, win reasons, and winning side.
+- **Bomb Events**: 79,557 bomb plants, defusals, and explosions.
+- **Official HLTV Stats**: 40,920 player map boxscores (ADR, KAST %, Rating 2.0 / 3.0, Round Swing %).
+- **Parquet Data Lake Footprint**: ~472 MB compressed with Snappy (>99.8% compression ratio from >380 GB raw archives).
+
+---
+
 ## Architecture
 
 ```mermaid
@@ -48,6 +63,7 @@ flowchart TD
 /Users/jankasen/dev/cs2/
 |-- README.md
 |-- requirements.txt
+|-- explore.py                    # Fast interactive Polars query tool for data lake analytics
 |-- data/
 |   |-- archives/                 # Downloaded .rar archives (temporary or archived)
 |   |-- cache/
@@ -55,16 +71,18 @@ flowchart TD
 |   |   |-- matches/              # Raw HTML cache for individual match pages
 |   |   `-- session_cookies.json  # Stored cf_clearance and browser fingerprint
 |   |-- catalog/
-|   |   |-- mvp_events.json       # All 65 CS2 MVP events (chronological order)
+|   |   |-- mvp_events.json       # All 66 CS2 MVP events catalog (chronological order)
 |   |   `-- cs2_pro_demos.sqlite  # SQLite database tracking events, matches, stats, and demos
 |   |-- demos/                    # Extracted CS2 .dem files organized by event/match
 |   `-- lake/                     # Snappy-compressed columnar Parquet tables (partitioned)
 `-- src/
     |-- config.py                 # Paths, rate limits, jitter settings, browser headers
-    |-- db.py                     # SQLite connection, schema, and upsert helpers
+    |-- db.py                     # SQLite WAL mode connection, schema, and upsert helpers
     |-- downloader.py             # Streaming downloader, unar extractor, and CS2 header checker
     |-- models.py                 # Data models: MVPEvent, Match
-    |-- parser.py                 # Feature extraction engine (kills, damage, utility, bomb, rounds)
+    |-- parser.py                 # Source 2 feature extraction engine (kills, damage, utility, bomb, rounds)
+    |-- pipeline.py               # Rolling worker pipeline orchestrator
+    |-- tournament_runner.py      # Resilient batch tournament runner with auto-checkpointing
     |-- utils/
     |   |-- cache.py              # DiskCache (ensures 0 redundant network calls)
     |   |-- client.py             # StealthHLTVClient with TLS impersonation & circuit breaker
@@ -72,8 +90,10 @@ flowchart TD
     `-- scraper/
         |-- harvest_events.py     # Discovers and paginates all CS2 MVP events
         |-- harvest_matches.py    # Crawls event matches, resolves GOTV links, extracts stats
-        `-- harvest_stats.py      # Parses official HLTV player boxscores and map results
+        |-- harvest_stats.py      # Parses official HLTV player boxscores and map results
+        `-- sync_live_events.py   # Incremental syncer for newly concluded events and live matches
 ```
+
 
 ---
 
@@ -218,6 +238,52 @@ python -m src.pipeline --demo 82721
 5. Auto-purges temporary `.rar` and `.dem` files, keeping peak disk usage under 1.5 GB.
 6. Updates SQLite `demos.status` to `PARSED`.
 7. Applies polite pacing delay (5.0s - 9.0s jitter) before downloading the next match.
+
+### 7. Tournament Batch Orchestrator (`src.tournament_runner`)
+
+To orchestrate complete tournaments through harvesting, match crawling, demo resolution, and rolling ingestion with automated checkpointing and SQLite WAL concurrency:
+
+```bash
+# Ingest an entire tournament by Event ID
+python -m src.tournament_runner --event 6865
+
+# Ingest multiple tournaments in batch
+python -m src.tournament_runner --events 6865,6972,7148
+
+# Run all remaining pending tournaments across the entire catalog
+python -m src.tournament_runner --all-events
+```
+
+### 8. Live Incremental Event Syncer (`src.scraper.sync_live_events`)
+
+Continuously or incrementally queries HLTV to discover newly crowned championship events and detect map count increases while adhering to the concluded-only ingestion policy:
+
+```bash
+# One-shot check for newly concluded tournaments or map updates
+python -m src.scraper.sync_live_events
+
+# Run sync with automated end-to-end demo parsing for any new events
+python -m src.scraper.sync_live_events --auto-parse
+
+# Continuous daemon mode polling HLTV every 30 minutes
+python -m src.scraper.sync_live_events --watch --interval 1800 --auto-parse
+```
+
+### 9. Interactive Analytics & Telemetry CLI (`explore.py`)
+
+A high-speed interactive command-line tool built on Polars and PyArrow. Scans and aggregates across the entire 598,000+ kill dataset and 1.9M utility events in approximately 2 seconds:
+
+```bash
+# Run all telemetry summary benchmarks
+python explore.py
+
+# Query a specific metric view
+python explore.py --kills          # Top kill leaders and headshot percentages
+python explore.py --openings       # Opening duel conversion leaders by weapon
+python explore.py --trades         # Trade kill reaction latency leaders
+python explore.py --swing          # HLTV Round Swing % peak individual performances
+python explore.py --utility        # Grenade detonation totals and map distributions
+```
 
 ---
 
