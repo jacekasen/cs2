@@ -99,6 +99,7 @@ def download_demo_archive(demo_id: int, client: Optional[StealthHLTVClient] = No
                 resp.status_code,
             )
             client._init_session(force=True)
+            time.sleep(2.0)
             headers = dict(client._session.headers)
             headers["Referer"] = row["match_url"]
             headers["User-Agent"] = client.user_agent

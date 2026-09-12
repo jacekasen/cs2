@@ -48,7 +48,7 @@ class StealthHLTVClient:
         self.initial_backoff = initial_backoff
         self.auto_auth = auto_auth
 
-        self._session = requests.Session(impersonate="chrome124")
+        self._session = requests.Session(impersonate="chrome150")
         self._last_request_time: float = 0.0
         self.consecutive_errors: int = 0
         self.user_agent = DEFAULT_HEADERS["User-Agent"]
@@ -61,6 +61,12 @@ class StealthHLTVClient:
         try:
             session_data = get_or_create_session(force=force)
             if session_data:
+                if force:
+                    try:
+                        self._session.close()
+                    except Exception:
+                        pass
+                    self._session = requests.Session(impersonate="chrome150")
                 if "user_agent" in session_data:
                     self.user_agent = session_data["user_agent"]
                 if "cookies" in session_data:
@@ -172,10 +178,11 @@ class StealthHLTVClient:
 
             except CloudflareChallengeError as e:
                 logger.warning("Cloudflare challenge encountered: %s", e)
-                if self.auto_auth and attempt == 1:
-                    logger.info("Attempting automated session refresh via nodriver...")
+                if self.auto_auth and attempt <= 2:
+                    logger.info("Attempting automated session refresh via Chrome CDP...")
                     self._init_session(force=True)
                     headers["User-Agent"] = self.user_agent
+                    time.sleep(2.0)
                     continue
                 else:
                     logger.critical("Circuit breaker tripped. Halting execution to protect IP!")

@@ -30,7 +30,7 @@ def load_saved_session() -> Optional[Dict[str, Any]]:
     return None
 
 
-def acquire_cf_session(timeout: int = 25) -> Dict[str, Any]:
+def acquire_cf_session(timeout: int = 90) -> Dict[str, Any]:
     """Launch Chrome with remote debugging, solve Cloudflare, and capture cookies."""
     logger.info("Launching Chrome via CDP to acquire Cloudflare clearance...")
     chrome_bin = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
@@ -71,17 +71,65 @@ def acquire_cf_session(timeout: int = 25) -> Dict[str, Any]:
 
         async def _fetch_cookies() -> Dict[str, str]:
             async with websockets.connect(browser_ws) as ws:
-                # Poll for cf_clearance cookie
-                for _ in range(timeout * 2):
-                    req = {"id": 1, "method": "Storage.getCookies"}
-                    await ws.send(json.dumps(req))
-                    msg = await ws.recv()
-                    data = json.loads(msg)
-                    cookies = {c["name"]: c["value"] for c in data.get("result", {}).get("cookies", [])}
-                    if "cf_clearance" in cookies:
-                        logger.info("[SUCCESS] Acquired cf_clearance: %s...", cookies["cf_clearance"][:16])
+                # Clear existing cookies to ensure fresh token
+                await ws.send(json.dumps({"id": 1, "method": "Network.clearBrowserCookies"}))
+                await ws.recv()
+
+                # Get page target
+                await ws.send(json.dumps({"id": 2, "method": "Target.getTargets"}))
+                res = json.loads(await ws.recv())
+                targets = res.get("result", {}).get("targetInfos", [])
+                page_targets = [t for t in targets if t["type"] == "page"]
+
+                session_id = None
+                if page_targets:
+                    await ws.send(json.dumps({
+                        "id": 3,
+                        "method": "Target.attachToTarget",
+                        "params": {"targetId": page_targets[0]["targetId"], "flatten": True}
+                    }))
+                    attach_res = json.loads(await ws.recv())
+                    session_id = attach_res.get("params", {}).get("sessionId")
+
+                logger.info(
+                    "Chrome is open at %s. Please complete any verification check if prompted...",
+                    HLTV_BASE_URL,
+                )
+
+                # Poll for verified clearance
+                for step in range(timeout * 2):
+                    page_title = ""
+                    if session_id:
+                        await ws.send(json.dumps({
+                            "id": 100 + step,
+                            "sessionId": session_id,
+                            "method": "Runtime.evaluate",
+                            "params": {"expression": "document.title"},
+                        }))
+                        while True:
+                            msg = json.loads(await ws.recv())
+                            if msg.get("id") == 100 + step:
+                                page_title = msg.get("result", {}).get("result", {}).get("value", "")
+                                break
+
+                    # Poll cookies
+                    await ws.send(json.dumps({"id": 1000 + step, "method": "Storage.getCookies"}))
+                    cookies_res = json.loads(await ws.recv())
+                    cookies = {
+                        c["name"]: c["value"]
+                        for c in cookies_res.get("result", {}).get("cookies", [])
+                    }
+
+                    if "cf_clearance" in cookies and page_title and "Just a moment" not in page_title:
+                        logger.info("[SUCCESS] Acquired verified cf_clearance: %s... (Title: %s)",
+                                    cookies["cf_clearance"][:16], page_title)
                         return cookies
+
+                    if step % 10 == 0:
+                        logger.info("Waiting for Cloudflare clearance... (Current title: %s)", page_title or "loading")
+
                     await asyncio.sleep(0.5)
+
                 return cookies
 
         cookies = asyncio.run(_fetch_cookies())

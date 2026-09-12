@@ -583,5 +583,14 @@
     "results_url": "https://www.hltv.org/results?event=8249",
     "start_date": null,
     "end_date": null
+  },
+  {
+    "event_id": 8266,
+    "name": "FISSURE Playground 3",
+    "winner": null,
+    "maps_count": 64,
+    "results_url": "https://www.hltv.org/results?event=8266",
+    "start_date": null,
+    "end_date": null
   }
 ]

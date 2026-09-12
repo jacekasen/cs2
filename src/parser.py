@@ -107,9 +107,22 @@ def build_round_timeline(
     for i in range(total_rounds):
         round_end_tick = int(re.iloc[i]["tick"])
         freeze_end_tick = int(fe.iloc[i]["tick"]) if i < len(fe) else None
-        winner_code = int(re.iloc[i]["winner"]) if "winner" in re.columns else None
-        winner_str = "T" if winner_code == 2 else ("CT" if winner_code == 3 else "UNKNOWN")
-        reason_code = int(re.iloc[i]["reason"]) if "reason" in re.columns else None
+        raw_winner = re.iloc[i]["winner"] if "winner" in re.columns else None
+        if raw_winner in (2, "2", "T", "t", "TERRORIST"):
+            winner_str = "T"
+            winner_code = 2
+        elif raw_winner in (3, "3", "CT", "ct", "COUNTER_TERRORIST"):
+            winner_str = "CT"
+            winner_code = 3
+        else:
+            winner_str = "UNKNOWN"
+            winner_code = None
+
+        raw_reason = re.iloc[i]["reason"] if "reason" in re.columns else None
+        try:
+            reason_code = int(raw_reason) if pd.notna(raw_reason) else None
+        except (ValueError, TypeError):
+            reason_code = None
         reason_str = ROUND_WIN_REASONS.get(reason_code, f"reason_{reason_code}")
 
         duration_ticks = (
@@ -230,6 +243,10 @@ def extract_kills(
                     )
                     kills.loc[idx_prior, "was_traded"] = True
                     break
+
+    kills["trade_ticks_delta"] = pd.to_numeric(
+        kills["trade_ticks_delta"], errors="coerce"
+    ).astype("Int64")
 
     # Standardize column naming
     rename_cols = {

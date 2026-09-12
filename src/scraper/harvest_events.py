@@ -3,9 +3,11 @@ import json
 import logging
 import re
 import sys
+from typing import Optional
 from bs4 import BeautifulSoup
 
 from src.config import EVENTS_CACHE_DIR, CATALOG_DIR, HLTV_BASE_URL, HLTV_MVP_EVENTS_URL
+from src.db import get_db, upsert_event
 from src.models import MVPEvent
 from src.utils.client import StealthHLTVClient
 
@@ -68,9 +70,15 @@ def parse_mvp_events_html(html_content: str) -> list[MVPEvent]:
     return events
 
 
-def harvest_mvp_events(force_refresh: bool = False) -> list[MVPEvent]:
+def harvest_mvp_events(
+    force_refresh: bool = False,
+    client: Optional[StealthHLTVClient] = None,
+) -> list[MVPEvent]:
     """Harvest all pages of CS2 MVP events and order chronologically (oldest CS2 event first)."""
-    client = StealthHLTVClient()
+    close_client = False
+    if client is None:
+        client = StealthHLTVClient()
+        close_client = True
     all_events: list[MVPEvent] = []
 
     try:
@@ -106,13 +114,20 @@ def harvest_mvp_events(force_refresh: bool = False) -> list[MVPEvent]:
         with open(output_file, "w", encoding="utf-8") as f:
             json.dump([e.to_dict() for e in all_events], f, indent=2)
 
+        # Upsert events into SQLite catalog
+        with get_db() as conn:
+            for e in all_events:
+                upsert_event(conn, e.to_dict())
+            conn.commit()
+
         logger.info("[COMPLETE] Complete CS2 MVP catalog created: %d events starting from %s (ID %d)",
                     len(all_events), all_events[0].name, all_events[0].event_id)
 
         return all_events
 
     finally:
-        client.close()
+        if close_client:
+            client.close()
 
 
 if __name__ == "__main__":

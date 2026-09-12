@@ -121,10 +121,18 @@ def harvest_matches_for_event(
     event_id: int,
     resolve_demos: bool = True,
     max_matches: Optional[int] = None,
+    client: Optional[StealthHLTVClient] = None,
+    force_refresh_results: bool = False,
 ) -> List[Dict[str, Any]]:
     """Crawl results page and resolve demo links + HLTV stats for an event."""
-    client = StealthHLTVClient()
+    close_client = False
+    if client is None:
+        client = StealthHLTVClient()
+        close_client = True
+
     event_cache = EVENTS_CACHE_DIR / f"event_{event_id}_results.html"
+    if force_refresh_results and event_cache.exists():
+        event_cache.unlink()
     results_url = f"{HLTV_BASE_URL}/results?event={event_id}"
 
     try:
@@ -195,7 +203,8 @@ def harvest_matches_for_event(
         return target_matches
 
     finally:
-        client.close()
+        if close_client:
+            client.close()
 
 
 if __name__ == "__main__":

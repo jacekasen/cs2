@@ -234,6 +234,23 @@ def process_single_demo(
 
     except Exception as e:
         logger.error("Failed processing demo %d: %s", demo_id, e, exc_info=True)
+        # Disk safety: purge intermediate scratch files on error to prevent host disk bloat
+        if not keep_demos and dem_files:
+            for df in dem_files:
+                try:
+                    if df.exists():
+                        df.unlink()
+                        logger.info("Purged failed raw demo: %s", df.name)
+                except Exception:
+                    pass
+        if not keep_archives and archive_path:
+            try:
+                if archive_path.exists():
+                    archive_path.unlink()
+                    logger.info("Purged failed raw archive: %s", archive_path.name)
+            except Exception:
+                pass
+
         with get_db() as conn:
             conn.execute(
                 """
