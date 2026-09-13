@@ -8,9 +8,15 @@ __pycache__/
 # Local session tokens, SQLite database, and raw HTML caches
 data/cache/
 *.sqlite
+*.sqlite*
 *.sqlite3
 *.db
 *.csv
+
+# Environment variables and secrets
+.env
+.env.*
+*.env
 data/archives/
 data/demos/
 data/lake/
