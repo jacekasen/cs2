@@ -1,9 +1,51 @@
 """Configuration settings for CS2 demo pipeline."""
+import os
 import shutil
 from pathlib import Path
 
 # Base Paths
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _load_env() -> None:
+    """Load environment variables from .env.local (or .env) if present."""
+    for filename in (".env.local", ".env"):
+        env_path = PROJECT_ROOT / filename
+        if not env_path.is_file():
+            continue
+        try:
+            from dotenv import load_dotenv
+
+            load_dotenv(dotenv_path=env_path)
+        except ImportError:
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, val = line.split("=", 1)
+                    key = key.strip()
+                    val = val.strip()
+                    if (val.startswith('"') and val.endswith('"')) or (
+                        val.startswith("'") and val.endswith("'")
+                    ):
+                        val = val[1:-1]
+                    if key and key not in os.environ:
+                        os.environ[key] = val
+
+
+_load_env()
+
+# Supabase Configuration
+SUPABASE_URL = (
+    os.getenv("SUPABASE_URL")
+    or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+    or "https://gliegwgwtusdetfmxfwi.supabase.co"
+)
+SUPABASE_SERVICE_ROLE_KEY = (
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SERVICE_ROLE_KEY") or ""
+)
+
 DATA_DIR = PROJECT_ROOT / "data"
 CACHE_DIR = DATA_DIR / "cache"
 EVENTS_CACHE_DIR = CACHE_DIR / "events"

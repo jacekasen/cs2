@@ -5,3 +5,4 @@ demoparser2>=0.40.0
 awpy>=2.0.0
 polars>=1.0.0
 pandas>=2.0.0
+python-dotenv>=1.0.0

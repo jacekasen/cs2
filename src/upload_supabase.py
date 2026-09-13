@@ -9,10 +9,13 @@ from pathlib import Path
 from typing import Any, Dict, List
 from urllib import error, request
 
-from src.config import DATABASE_PATH
+from src.config import (
+    DATABASE_PATH,
+    SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_URL,
+)
 
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://gliegwgwtusdetfmxfwi.supabase.co")
-SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+SERVICE_ROLE_KEY = SUPABASE_SERVICE_ROLE_KEY
 BATCH_SIZE = 500
 
 
@@ -61,7 +64,8 @@ def upload_table(table_name: str, on_conflict: str, rows: List[Dict[str, Any]]):
 
 def main():
     if not SERVICE_ROLE_KEY:
-        print("Error: SUPABASE_SERVICE_ROLE_KEY environment variable is required.")
+        print("Error: SUPABASE_SERVICE_ROLE_KEY is required.")
+        print("Please set SUPABASE_SERVICE_ROLE_KEY in your .env.local file.")
         sys.exit(1)
 
     if not os.path.exists(DATABASE_PATH):
